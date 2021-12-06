@@ -1,10 +1,16 @@
 package com.example.covidquarantinemanagement;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import android.Manifest;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -15,11 +21,22 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.covidquarantinemanagement.databinding.ActivityMapsBinding;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    private static final int MY_PERMISSION_REQUEST_LOCATION = 99;
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
+    private FusedLocationProviderClient client;
+
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final CollectionReference zones = db.collection("zones");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,9 +62,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        requestPermission();
         mMap = googleMap;
+        client = LocationServices.getFusedLocationProviderClient(MapsActivity.this);
 
-        // Add a marker in Sydney and move the camera
+
+        zones.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        Log.i(TAG,document.getData().get("position").toString());
+                    }
+                } else {
+                    Log.w(TAG, "Error getting documents.", task.getException());
+                }
+            }
+        });
+        // Add a marker in rmit and move the camera
         LatLng rmit = new LatLng(10.73, 106.69);
         mMap.addMarker(new MarkerOptions().position(rmit).title("RMIT Vietnam"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(rmit));
@@ -72,6 +104,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(MapsActivity.this, marker.toString(), Toast.LENGTH_SHORT).show();
                 return false;
             }
+        });
+    }
+
+    private void requestPermission() {
+        ActivityCompat.requestPermissions(MapsActivity.this, new String[] {
+                Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_LOCATION);
         });
     }
 }
