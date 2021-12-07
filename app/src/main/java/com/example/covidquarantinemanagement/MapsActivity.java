@@ -67,18 +67,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         client = LocationServices.getFusedLocationProviderClient(MapsActivity.this);
 
 
-        zones.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        Log.i(TAG,document.getData().get("position").toString());
-                    }
-                } else {
-                    Log.w(TAG, "Error getting documents.", task.getException());
-                }
-            }
-        });
+//        zones.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//            @Override
+//            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                if (task.isSuccessful()) {
+//                    for (QueryDocumentSnapshot document : task.getResult()) {
+//                        Log.i(TAG,document.getData().get("position").toString());
+//                    }
+//                } else {
+//                    Log.w(TAG, "Error getting documents.", task.getException());
+//                }
+//            }
+//        });
         // Add a marker in rmit and move the camera
         LatLng rmit = new LatLng(10.73, 106.69);
         mMap.addMarker(new MarkerOptions().position(rmit).title("RMIT Vietnam"));
@@ -110,6 +110,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void requestPermission() {
         ActivityCompat.requestPermissions(MapsActivity.this, new String[] {
                 Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_LOCATION);
-        });
     }
 }

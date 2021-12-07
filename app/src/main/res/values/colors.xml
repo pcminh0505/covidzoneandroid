@@ -6,5 +6,13 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
+
+    // Main color theme for app
+    <color name="blue">#4599FE</color>
+    <color name="dark_blue">#031E49</color>
+    <color name="red">#EE0405</color>
+    <color name="white">#FFFDFE</color>
+    <color name="indigo">#2D4046</color>
+    <color name="metal">#B8CAD1</color>
 </resources>
