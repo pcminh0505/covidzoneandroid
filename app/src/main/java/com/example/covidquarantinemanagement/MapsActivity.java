@@ -5,11 +5,18 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -22,6 +29,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.covidquarantinemanagement.databinding.ActivityMapsBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -33,7 +41,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int MY_PERMISSION_REQUEST_LOCATION = 99;
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
-    private FusedLocationProviderClient client;
+    protected FusedLocationProviderClient fusedLocationClient;
+    protected com.google.android.gms.location.LocationRequest mLocationRequest;
+
+    private static final long UPDATE_INTERVAL = 10*1000; // 10s
+    private static final long FASTEST_INTERVAL = 2*1000; // 2s
 
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final CollectionReference zones = db.collection("zones");
@@ -64,21 +76,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         requestPermission();
         mMap = googleMap;
-        client = LocationServices.getFusedLocationProviderClient(MapsActivity.this);
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(MapsActivity.this);
 
-
-//        zones.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-//            @Override
-//            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-//                if (task.isSuccessful()) {
-//                    for (QueryDocumentSnapshot document : task.getResult()) {
-//                        Log.i(TAG,document.getData().get("position").toString());
-//                    }
-//                } else {
-//                    Log.w(TAG, "Error getting documents.", task.getException());
-//                }
-//            }
-//        });
         // Add a marker in rmit and move the camera
         LatLng rmit = new LatLng(10.73, 106.69);
         mMap.addMarker(new MarkerOptions().position(rmit).title("RMIT Vietnam"));
@@ -105,10 +104,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return false;
             }
         });
+
+        startLocationUpdate();
+
+    }
+
+    @SuppressLint("MissingPermission")
+    private void startLocationUpdate() {
+        mLocationRequest = new com.google.android.gms.location.LocationRequest();
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setInterval(UPDATE_INTERVAL);
+        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
+        fusedLocationClient.requestLocationUpdates(mLocationRequest, new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                onLocationChanged(locationResult.getLastLocation());
+            }
+        }, null);
+    }
+
+    private void onLocationChanged(Location lastLocation) {
+        String message = "Updated location" + Double.toString((lastLocation.getLatitude())) + ". " + Double.toString(lastLocation.getLongitude());
+        LatLng newLoc = new LatLng((lastLocation.getLatitude()), lastLocation.getLongitude());
+        mMap.addMarker(new MarkerOptions().position(newLoc).title("New Location"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(newLoc));
+        Toast.makeText(MapsActivity.this, message, Toast.LENGTH_SHORT).show();
     }
 
     private void requestPermission() {
         ActivityCompat.requestPermissions(MapsActivity.this, new String[] {
                 Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_REQUEST_LOCATION);
+    }
+
+    @SuppressLint("MissingPermission")
+    public void getPosition(View view) {
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        LatLng lastLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                        mMap.moveCamera((CameraUpdateFactory.newLatLng(lastLocation)));
+                        mMap.addMarker(new MarkerOptions()
+                                .position(lastLocation)
+                                .title("My Location"));
+                        Toast.makeText(MapsActivity.this, location.getLatitude() + " ", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }
