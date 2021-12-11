@@ -18,11 +18,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CovidQuarantineManagement">
         <activity
-            android:name=".Activity.MainActivity"
-            android:exported="false"
-            android:label="@string/title_activity_main"
-            android:theme="@style/Theme.CovidQuarantineManagement.NoActionBar" />
-        <activity
             android:name=".Activity.RegisterZoneActivity"
             android:exported="false" />
         <!--
