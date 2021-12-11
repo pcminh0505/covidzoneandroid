@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.covidquarantinemanagement.databinding.ActivityMainBinding;
 
+// https://github.com/ngesa254/NaviDrawerMaps
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration mAppBarConfiguration;
