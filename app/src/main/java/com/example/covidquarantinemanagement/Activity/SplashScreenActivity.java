@@ -1,4 +1,4 @@
-package com.example.covidquarantinemanagement;
+package com.example.covidquarantinemanagement.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.widget.TextView;
 
 import com.airbnb.lottie.LottieAnimationView;
+import com.example.covidquarantinemanagement.R;
 
 public class SplashScreenActivity extends AppCompatActivity {
 

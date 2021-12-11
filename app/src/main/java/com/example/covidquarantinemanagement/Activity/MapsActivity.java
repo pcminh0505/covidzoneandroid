@@ -1,18 +1,19 @@
-package com.example.covidquarantinemanagement;
+package com.example.covidquarantinemanagement.Activity;
+import com.example.covidquarantinemanagement.Util.Helper;
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.location.Location;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
-
+import com.example.covidquarantinemanagement.R;
+import com.example.covidquarantinemanagement.databinding.ActivityMapsBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -22,19 +23,12 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.example.covidquarantinemanagement.databinding.ActivityMapsBinding;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -78,22 +72,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(MapsActivity.this);
 
-        // Add a marker in rmit and move the camera
-        LatLng rmit = new LatLng(10.73, 106.69);
-        mMap.addMarker(new MarkerOptions().position(rmit).title("RMIT Vietnam"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(rmit));
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(rmit,15));
+
         mMap.getUiSettings().setZoomControlsEnabled(true);
-//        mMap.setMapStyle()
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                mMap.addMarker(new MarkerOptions()
-                        .position(latLng)
-                        .title("hihi")
-                        .icon(BitmapDescriptorFactory.defaultMarker())
-                );
+                // Move to RegisterZone Activity
+                Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
+                i.putExtra("latitude",latLng.latitude);
+                i.putExtra("longitude",latLng.longitude);
+                startActivity(i);
             }
         });
 
@@ -109,6 +98,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+//        new GetZones();
+
+    }
+
     @SuppressLint("MissingPermission")
     private void startLocationUpdate() {
         mLocationRequest = new com.google.android.gms.location.LocationRequest();
@@ -118,18 +114,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         fusedLocationClient.requestLocationUpdates(mLocationRequest, new LocationCallback() {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
-                onLocationChanged(locationResult.getLastLocation());
+                super.onLocationResult(locationResult);
+                Location location = locationResult.getLastLocation();
+                Toast.makeText(MapsActivity.this, "(" + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_SHORT).show();
             }
         }, null);
     }
 
-    private void onLocationChanged(Location lastLocation) {
-        String message = "Updated location" + Double.toString((lastLocation.getLatitude())) + ". " + Double.toString(lastLocation.getLongitude());
-        LatLng newLoc = new LatLng((lastLocation.getLatitude()), lastLocation.getLongitude());
-        mMap.addMarker(new MarkerOptions().position(newLoc).title("New Location"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(newLoc));
-        Toast.makeText(MapsActivity.this, message, Toast.LENGTH_SHORT).show();
-    }
+//    private void onLocationChanged(Location lastLocation) {
+//        String message = "Updated location" + Double.toString((lastLocation.getLatitude())) + ". " + Double.toString(lastLocation.getLongitude());
+//        LatLng newLoc = new LatLng((lastLocation.getLatitude()), lastLocation.getLongitude());
+//        mMap.addMarker(new MarkerOptions().position(newLoc).title("New Location"));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(newLoc));
+//        Toast.makeText(MapsActivity.this, message, Toast.LENGTH_SHORT).show();
+//    }
 
     private void requestPermission() {
         ActivityCompat.requestPermissions(MapsActivity.this, new String[] {
@@ -142,12 +140,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                     @Override
                     public void onSuccess(Location location) {
-                        LatLng lastLocation = new LatLng(location.getLatitude(), location.getLongitude());
-                        mMap.moveCamera((CameraUpdateFactory.newLatLng(lastLocation)));
+                        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                         mMap.addMarker(new MarkerOptions()
-                                .position(lastLocation)
-                                .title("My Location"));
-                        Toast.makeText(MapsActivity.this, location.getLatitude() + " ", Toast.LENGTH_SHORT).show();
+                                .position(latLng)
+                                .title("My Location")
+                                .icon(Helper.bitmapDescriptorFromVector(MapsActivity.this, R.drawable.zone_marker)));
+                        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,15));
+                        Toast.makeText(MapsActivity.this, "(" + location.getLatitude() + ", " + location.getLongitude(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
