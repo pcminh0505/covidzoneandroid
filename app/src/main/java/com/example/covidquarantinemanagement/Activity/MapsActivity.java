@@ -3,6 +3,7 @@ package com.example.covidquarantinemanagement.Activity;
 // Reference: https://developers.google.com/maps/documentation/android-sdk/current-place-tutorial
 // Github: https://github.com/googlemaps/android-samples/blob/c6a1b5ddb5fd69997815105ffec8eb1ba70d4d8a/tutorials/java/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
@@ -107,16 +108,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         map.getUiSettings().setZoomControlsEnabled(true);
 
-//        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-//            @Override
-//            public void onMapClick(LatLng latLng) {
-//                // Move to RegisterZone Activity
-//                Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
-//                i.putExtra("latitude",latLng.latitude);
-//                i.putExtra("longitude",latLng.longitude);
-//                startActivity(i);
-//            }
-//        });
+        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                // Move to RegisterZone Activity
+                Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
+                i.putExtra("latitude",latLng.latitude);
+                i.putExtra("longitude",latLng.longitude);
+                startActivity(i);
+            }
+        });
 //
 //        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 //            @Override
