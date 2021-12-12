@@ -2,9 +2,14 @@ package com.example.covidquarantinemanagement.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.covidquarantinemanagement.R;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.textfield.TextInputLayout;
 
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -28,14 +33,17 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class RegisterZoneActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
     private String dvhcvn;
     private JSONArray dtb;
+
+    private Geocoder geocoder;
+
     private EditText regName, regStreet;
-//    private TextInputLayout regCityLayout, regDistrictLayout, regWardLayout;
     private AutoCompleteTextView regCity, regDistrict, regWard;
 
     private HashMap<String, String> level1 = new HashMap<String, String>();
@@ -45,6 +53,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
 
     private ArrayAdapter<String> cityAdapter, districtAdapter, wardAdapter;
 
+    private String site_name, city, district, ward, street;
     private void parseJson() {
         InputStream is = getResources().openRawResource(R.raw.dvhcvn);
         Writer writer = new StringWriter();
@@ -79,15 +88,15 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register_zone);
         getSupportActionBar().show();
+        geocoder = new Geocoder(this);
 
         parseJson();
 
-//        regCityLayout = (TextInputLayout) findViewById(R.id.reg_city_layout);
         regCity = (AutoCompleteTextView) findViewById(R.id.reg_city);
-//        regDistrictLayout = (TextInputLayout) findViewById(R.id.reg_district_layout);
         regDistrict = (AutoCompleteTextView) findViewById(R.id.reg_district);
-//        regWardLayout = (TextInputLayout) findViewById(R.id.reg_ward_layout);
         regWard = (AutoCompleteTextView) findViewById(R.id.rec_ward);
+        regName = findViewById(R.id.reg_site_name);
+        regStreet = findViewById(R.id.rec_street);
 
         try {
             dtb = new JSONArray(dvhcvn);
@@ -112,39 +121,49 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
         regDistrict.setAdapter(districtAdapter);
         regWard.setAdapter(wardAdapter);
 
-        regCity.setThreshold(2);
-        regDistrict.setThreshold(2);
-        regWard.setThreshold(2);
+        regCity.setThreshold(1);
+        regDistrict.setThreshold(1);
+        regWard.setThreshold(1);
 
         regCity.setOnItemClickListener(this);
         regDistrict.setOnItemClickListener(this);
         regWard.setOnItemClickListener(this);
 
         Button submitButton = (Button) findViewById(R.id.rec_sumbit_button);
+
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Collect the information
+                site_name = regName.getText().toString();
+                city = regCity.getText().toString();
+                district = regDistrict.getText().toString();
+                ward = regWard.getText().toString();
+                street = regStreet.getText().toString();
 
-                Intent i = new Intent(RegisterZoneActivity.this, MapsActivity.class);
-//                i.putExtra("tokenSymbol", tokenSymbol);
-                setResult(RESULT_OK, i);
-                finish();
+                String fullAddress = street + " " +  ward + " " + district + " " + city;
 
-//                // Get the input text
-//                tokenSymbol = tokenNameText.getText().toString();
-//
-//                // If existed, send back the token's symbol to MainActivity. Else keep "toasting"
-//                if (TOKEN_LIST.contains(tokenSymbol.toUpperCase()) &&
-//                        !existedList.contains(tokenSymbol.toUpperCase())) {
-//                    Intent i = new Intent(RegisterZoneActivity.this,MapsActivity.class);
-//                    i.putExtra("tokenSymbol", tokenSymbol);
-//                    setResult(RESULT_OK, i);
-//                    finish();
-//                } else if (!TOKEN_LIST.contains(tokenSymbol.toUpperCase())) {
-//                    Toast.makeText(getApplicationContext(), "Sorry the token isn't available in the database. Please try other token.", Toast.LENGTH_SHORT).show();
-//                } else {
-//                    Toast.makeText(getApplicationContext(), "You've already saved this token.", Toast.LENGTH_SHORT).show();
-//                }
+                if (!site_name.equals("") & !city.equals("") & !district.equals("") & !ward.equals("") & !street.equals("")) {
+                    try {
+                        List<Address> addresses = geocoder.getFromLocationName(fullAddress, 1);
+                        if (addresses.size() > 0) {
+                            Address address = addresses.get(0);
+                            Intent i = new Intent(RegisterZoneActivity.this,MapsActivity.class);
+                            i.putExtra("latitude", address.getLatitude());
+                            i.putExtra("longitude", address.getLongitude());
+                            setResult(RESULT_OK,i);
+                            finish();
+                        }
+                        else {
+                            Toast.makeText(getApplicationContext(), "Please recheck your address", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "Please make sure all boxes are filled!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -236,7 +255,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
                         e.printStackTrace();
                     }
                     try {
-                        Map.Entry<String,String> entry1 = currentLevelName.entrySet().iterator().next();
+                        Map.Entry<String, String> entry1 = currentLevelName.entrySet().iterator().next();
                         System.out.println(entry1.getKey());
                         System.out.println(level2Object.getString("name"));
 

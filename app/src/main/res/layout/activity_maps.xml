@@ -32,20 +32,31 @@
                     map:layout_constraintTop_toTopOf="parent"
                     map:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-                <Button
+                <ImageButton
                     android:id="@+id/add_site_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@android:color/transparent"
-                    android:text="+"
-                    android:textAlignment="center"
-                    android:textSize="25sp"
+                    android:src="@drawable/ic_baseline_add_24"
                     map:layout_constraintBottom_toBottomOf="parent"
                     map:layout_constraintEnd_toEndOf="parent"
-                    map:layout_constraintHorizontal_bias="1.0"
+                    map:layout_constraintHorizontal_bias="0.958"
                     map:layout_constraintStart_toStartOf="@+id/toolbar"
-                    map:layout_constraintTop_toTopOf="parent"
-                    map:layout_constraintVertical_bias="0.666" />
+                    map:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/search_site_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:gravity="center"
+                    android:src="@drawable/ic_baseline_location_searching_24"
+                    android:textAlignment="center"
+                    map:layout_constraintBottom_toBottomOf="parent"
+                    map:layout_constraintEnd_toEndOf="parent"
+                    map:layout_constraintHorizontal_bias="0.811"
+                    map:layout_constraintStart_toStartOf="@+id/toolbar"
+                    map:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
         </com.google.android.material.appbar.AppBarLayout>

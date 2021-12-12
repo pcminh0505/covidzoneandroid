@@ -10,11 +10,14 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -39,6 +42,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+
+import java.io.IOException;
+import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -98,7 +104,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
 
         // Add Button + Listener
-        Button addButton = (Button) findViewById(R.id.add_site_button);
+        ImageButton addButton = (ImageButton) findViewById(R.id.add_site_button);
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -108,6 +114,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 startActivityForResult(i,100);
             }
         });
+
+        // Search Button + Listener
+//        ImageButton searchButton = (ImageButton) findViewById(R.id.search_site_button);
+//        searchButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
+////                ArrayList<String> existedList = Helper.createSymbolList(mCrypto);
+////                i.putExtra("existedList",existedList);
+//                startActivityForResult(i,200);
+//            }
+//        });
     }
 
     /**
@@ -264,26 +282,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Receive data from AddTokenActivity
         if (requestCode == 100) {
             if (resultCode == RESULT_OK) {
-//                String resultSymbol = data.getStringExtra("tokenSymbol").toUpperCase();
-//                // Create + Add the token to the ArrayList
-//                mCrypto.add(new Token(resultSymbol, Helper.getResourceImage(resultSymbol,this)));
-//                Helper.getAPIData(MainActivity.this,mCrypto);
-//                mAdapter.notifyItemInserted(mCrypto.size()-1);
-                LatLng position = new LatLng(10.749997, 106.666664);
-                map.addMarker(new MarkerOptions()
-                        .position(position)
-                        .icon(bitmapDescriptorFromVector(this,R.drawable.zone_marker)));
-                map.moveCamera(CameraUpdateFactory.newLatLng(position));
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 15));
-                Toast.makeText(MapsActivity.this, "(" + "10.749997" +
-                        "," + "106.666664" +")", Toast.LENGTH_SHORT).show();
+                double newSiteLatitude = data.getDoubleExtra("latitude",0.00);
+                double newSiteLongitude = data.getDoubleExtra("longitude",0.00);
+
+                LatLng newSite = new LatLng(newSiteLatitude, newSiteLongitude);
+                MarkerOptions markerOptions = new MarkerOptions()
+                        .position(newSite)
+                        .icon(bitmapDescriptorFromVector(this,R.drawable.zone_marker));
+                map.addMarker(markerOptions);
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(newSite, 16));
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(newSite, 15));
+                Toast.makeText(MapsActivity.this, "New Site has been registered", Toast.LENGTH_LONG).show();
+                }
             }
         }
-    }
-
     private static BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorZoneId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorZoneId);
         vectorDrawable.setBounds(0,0,
