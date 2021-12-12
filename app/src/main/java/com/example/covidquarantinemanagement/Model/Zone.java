@@ -8,10 +8,11 @@ public class Zone {
     private String id;
     private String name;
     private String leader;
-    private double latitude, longitude;
+    private String level1Address;
+    private String level2Address;
+    private String level3Address;
 
-    private SimpleDateFormat startDate;
-    private SimpleDateFormat endDate;
+    private double latitude, longitude;
 
     private ArrayList<String> volunteerUsers;
     private HashMap<Integer, Integer> peopleCount;

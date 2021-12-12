@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">CovidZones Connect</string>
     <string name="title_activity_maps">Covid Sites Map</string>
-    <string name="title_activity_register_zone">RegisterZoneActivity</string>
+    <string name="title_activity_register_zone">Register Covid Test Site</string>
 
     <string name="nav_account">Account</string>
     <string name="nav_profile">Profile</string>

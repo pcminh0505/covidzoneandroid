@@ -19,13 +19,34 @@
             android:layout_height="wrap_content"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="@color/blue"
-                map:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                />
+                android:layout_height="match_parent">
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="@color/blue"
+
+                    map:layout_constraintTop_toTopOf="parent"
+                    map:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+                <Button
+                    android:id="@+id/add_site_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/transparent"
+                    android:text="+"
+                    android:textAlignment="center"
+                    android:textSize="25sp"
+                    map:layout_constraintBottom_toBottomOf="parent"
+                    map:layout_constraintEnd_toEndOf="parent"
+                    map:layout_constraintHorizontal_bias="1.0"
+                    map:layout_constraintStart_toStartOf="@+id/toolbar"
+                    map:layout_constraintTop_toTopOf="parent"
+                    map:layout_constraintVertical_bias="0.666" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </com.google.android.material.appbar.AppBarLayout>
 

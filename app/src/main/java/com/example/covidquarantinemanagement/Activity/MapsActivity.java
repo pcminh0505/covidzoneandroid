@@ -4,11 +4,18 @@ package com.example.covidquarantinemanagement.Activity;
 // Github: https://github.com/googlemaps/android-samples/blob/c6a1b5ddb5fd69997815105ffec8eb1ba70d4d8a/tutorials/java/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -17,7 +24,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.fragment.app.FragmentActivity;
 
 import com.example.covidquarantinemanagement.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -26,8 +32,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
@@ -87,6 +96,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        // Add Button + Listener
+        Button addButton = (Button) findViewById(R.id.add_site_button);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
+//                ArrayList<String> existedList = Helper.createSymbolList(mCrypto);
+//                i.putExtra("existedList",existedList);
+                startActivityForResult(i,100);
+            }
+        });
     }
 
     /**
@@ -125,16 +146,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         map.getUiSettings().setZoomControlsEnabled(true);
 
-        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(LatLng latLng) {
-                // Move to RegisterZone Activity
-                Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
-                i.putExtra("latitude",latLng.latitude);
-                i.putExtra("longitude",latLng.longitude);
-                startActivity(i);
-            }
-        });
+//        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+//            @Override
+//            public void onMapClick(LatLng latLng) {
+//                // Move to RegisterZone Activity
+//                Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
+//                i.putExtra("latitude",latLng.latitude);
+//                i.putExtra("longitude",latLng.longitude);
+//                startActivity(i);
+//            }
+//        });
 //
 //        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 //            @Override
@@ -237,5 +258,39 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         } catch (SecurityException e)  {
             Log.e("Exception: %s", e.getMessage(), e);
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // Receive data from AddTokenActivity
+        if (requestCode == 100) {
+            if (resultCode == RESULT_OK) {
+//                String resultSymbol = data.getStringExtra("tokenSymbol").toUpperCase();
+//                // Create + Add the token to the ArrayList
+//                mCrypto.add(new Token(resultSymbol, Helper.getResourceImage(resultSymbol,this)));
+//                Helper.getAPIData(MainActivity.this,mCrypto);
+//                mAdapter.notifyItemInserted(mCrypto.size()-1);
+                LatLng position = new LatLng(10.749997, 106.666664);
+                map.addMarker(new MarkerOptions()
+                        .position(position)
+                        .icon(bitmapDescriptorFromVector(this,R.drawable.zone_marker)));
+                map.moveCamera(CameraUpdateFactory.newLatLng(position));
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 15));
+                Toast.makeText(MapsActivity.this, "(" + "10.749997" +
+                        "," + "106.666664" +")", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private static BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorZoneId) {
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorZoneId);
+        vectorDrawable.setBounds(0,0,
+                vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 }
