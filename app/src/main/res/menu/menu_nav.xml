@@ -2,12 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item android:id="@+id/nav_account"
-            android:title="@string/nav_account"
-            android:icon="@drawable/ic_account">
+            android:title="@string/nav_volunteer"
+            android:icon="@drawable/ic_baseline_bookmark_24">
         </item>
         <item android:id="@+id/nav_profile"
-            android:title="@string/nav_profile"
-            android:icon="@drawable/ic_account">
+            android:title="@string/nav_leader"
+            android:icon="@drawable/ic_baseline_leaderboard_24">
+        </item>
+        <item android:id="@+id/nav_logout"
+            android:title="Log Out"
+            android:icon="@drawable/ic_log_out_24"
+            android:visible="false">
         </item>
     </group>
 </menu>

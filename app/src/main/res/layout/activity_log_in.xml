@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".Activity.LogInActivity">
 
     <TextView
@@ -14,6 +15,8 @@
         android:textSize="25sp"
         android:textStyle="bold"
         android:fontFamily="@font/roboto"
+        android:layout_gravity="center"
+        android:paddingTop="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
@@ -25,6 +28,7 @@
         android:id="@+id/phone_image"
         android:layout_width="138dp"
         android:layout_height="185dp"
+        android:layout_gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
@@ -69,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
                 android:fontFamily="@font/roboto"
-                android:text="Please enter your number to continue"
+                android:text="Please enter your phone number to continue"
                 tools:layout_editor_absoluteX="166dp"
                 tools:layout_editor_absoluteY="457dp" />
 
@@ -125,6 +129,43 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.49" />
+
+        <TextView
+            android:id="@+id/sign_up_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/roboto"
+            android:gravity="center"
+            android:text="Didn't have an account? Sign up for one"
+            android:textSize="15sp"
+            android:textStyle="italic"
+            tools:layout_editor_absoluteX="166dp"
+            tools:layout_editor_absoluteY="457dp" />
+        <LinearLayout
+            android:id="@+id/sign_up_bar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:visibility="invisible">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Name"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:layout_weight="1.5"
+                android:fontFamily="@font/roboto" />
+            <EditText
+                android:id="@+id/user_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/roboto"
+                android:textSize="20sp"
+
+                android:hint="Enter your name here"/>
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -206,4 +247,4 @@
         </LinearLayout>
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

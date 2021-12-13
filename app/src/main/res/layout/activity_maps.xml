@@ -75,13 +75,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         map:headerLayout="@layout/layout_header_nav"
-        map:menu="@menu/menu_nav">
-
-        <Button
-            android:id="@+id/map_login_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-    </com.google.android.material.navigation.NavigationView>
+        map:menu="@menu/menu_nav"/>
 <!--    <fragment-->
 <!--        android:id="@+id/map"-->
 <!--        android:name="com.google.android.gms.maps.SupportMapFragment"-->

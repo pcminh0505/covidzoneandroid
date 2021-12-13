@@ -27,12 +27,12 @@
                 android:layout_height="match_parent"
                 android:fontFamily="@font/roboto"
                 android:gravity="center_vertical"
-                android:text="Site Name"
+                android:text="Zone Name"
                 android:textStyle="bold"
                 android:textSize="25sp" />
 
             <EditText
-                android:id="@+id/reg_site_name"
+                android:id="@+id/reg_zone_name"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:backgroundTint="@color/blue"

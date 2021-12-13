@@ -1,19 +1,23 @@
 package com.example.covidquarantinemanagement.Activity;
 
 import static android.content.ContentValues.TAG;
+import com.example.covidquarantinemanagement.Util.DatabaseHandler;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.covidquarantinemanagement.R;
@@ -21,16 +25,14 @@ import com.example.covidquarantinemanagement.databinding.ActivityLogInBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.FirebaseException;
-import com.google.firebase.FirebaseTooManyRequestsException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.hbb20.CountryCodePicker;
-
 import java.util.concurrent.TimeUnit;
 
 public class LogInActivity extends AppCompatActivity {
@@ -41,7 +43,8 @@ public class LogInActivity extends AppCompatActivity {
     private String mVerificationID;
     private ProgressDialog pd;
 
-//    private String phone;
+    // Setup Firestore database
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +52,7 @@ public class LogInActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityLogInBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        setupUI(binding.getRoot());
 
         binding.phoneLayout.setVisibility(View.VISIBLE);
         binding.verificationLayout.setVisibility(View.GONE);
@@ -65,6 +69,11 @@ public class LogInActivity extends AppCompatActivity {
         SpannableString content = new SpannableString(mystring);
         content.setSpan(new UnderlineSpan(), 0, mystring.length(), 0);
         binding.resendOtp.setText(content);
+
+        String mystring1 = "Didn't have an account? Sign up for one";
+        SpannableString content1 = new SpannableString(mystring1);
+        content1.setSpan(new UnderlineSpan(), 0, mystring1.length(), 0);
+        binding.signUpText.setText(content1);
 
         mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
@@ -107,7 +116,10 @@ public class LogInActivity extends AppCompatActivity {
                 binding.verificationLayout.setVisibility(View.VISIBLE);
                 Toast.makeText(LogInActivity.this, "Verification code sent...", Toast.LENGTH_SHORT).show();
 
-                binding.reminderText.setText("Please type the verification code we sent to \n +" + binding.inputPhone.getText().toString().trim());
+                // Get CountryCodePicker
+                CountryCodePicker ccp = (CountryCodePicker) findViewById(R.id.countryCodePicker);
+                String code = ccp.getSelectedCountryCode();
+                binding.reminderText.setText("Please type the verification code we sent to \n +" + code + binding.inputPhone.getText().toString().trim());
             }
         };
 
@@ -118,16 +130,25 @@ public class LogInActivity extends AppCompatActivity {
                 CountryCodePicker ccp = (CountryCodePicker) findViewById(R.id.countryCodePicker);
                 String code = ccp.getSelectedCountryCode();
                 String phoneNumber = binding.inputPhone.getText().toString();
+                String userName = binding.userName.getText().toString();
                 String phone = "+" + code + phoneNumber;
                 System.out.println(phone + "neeeeeeeeeee");
-                if (TextUtils.isEmpty(phone)) {
-                    Toast.makeText(LogInActivity.this, "Please enter phone number...", Toast.LENGTH_SHORT).show();
+                if (TextUtils.isEmpty(phone) | (binding.signUpBar.getVisibility() == View.VISIBLE) & (TextUtils.isEmpty(userName))) {
+                    Toast.makeText(LogInActivity.this, "Please enter all the input field(s)...", Toast.LENGTH_SHORT).show();
                 }
                 else {
                     startPhoneNumberVerification(phone);
                 }
             }
         });
+
+        binding.signUpText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                binding.signUpBar.setVisibility(View.VISIBLE);
+            }
+        });
+
 
         binding.resendOtp.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -200,7 +221,6 @@ public class LogInActivity extends AppCompatActivity {
     }
 
     private void signInWithAuthCredential(PhoneAuthCredential credential) {
-        pd.setMessage("Loggin In");
         mAuth.signInWithCredential(credential)
                  .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                      @Override
@@ -208,10 +228,24 @@ public class LogInActivity extends AppCompatActivity {
                          // Successfully signed in
                          pd.dismiss();
                          String phone = mAuth.getCurrentUser().getPhoneNumber();
+                         String uid = mAuth.getUid();
+                         String name = binding.userName.getText().toString().trim();
+
+                         // Name not empty -> Signup push user to database
+                         if (!TextUtils.isEmpty(name)) {
+                             // TODO: Create user
+                             // set title of progress bar
+                             pd.setTitle("Signing up ...");
+                             DatabaseHandler.createUserOnDatabase(db,LogInActivity.this,pd,uid,name,phone);
+                         }
+                         pd.setMessage("Loggin In");
                          Toast.makeText(LogInActivity.this, "Logged in as " + phone, Toast.LENGTH_SHORT).show();
 
                          // Start profile activity
-
+                         Intent i = new Intent(LogInActivity.this, MapsActivity.class);
+                         i.putExtra("name",name);
+                         setResult(RESULT_OK, i);
+                         finish();
                      }
                  })
                  .addOnFailureListener(new OnFailureListener() {
@@ -224,11 +258,27 @@ public class LogInActivity extends AppCompatActivity {
                  });
     }
 
-//    @Override
-//    public void onStart() {
-//        super.onStart();
-//        // Check if user is signed in (non-null) and update UI accordingly.
-//        FirebaseUser currentUser = mAuth.getCurrentUser();
-////        updateUI(currentUser);
-//    }
+    private void setupUI(View view) {
+
+        // Set up touch listener for non-text box views to hide keyboard.
+        if (!(view instanceof EditText)) {
+            view.setOnTouchListener(new View.OnTouchListener() {
+                public boolean onTouch(View v, MotionEvent event) {
+                    hideSoftKeyboard(LogInActivity.this);
+                    return false;
+                }
+            });
+        }
+    }
+    private static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager =
+                (InputMethodManager) activity.getSystemService(
+                        Activity.INPUT_METHOD_SERVICE);
+        if(inputMethodManager.isAcceptingText()){
+            inputMethodManager.hideSoftInputFromWindow(
+                    activity.getCurrentFocus().getWindowToken(),
+                    0
+            );
+        }
+    }
 }

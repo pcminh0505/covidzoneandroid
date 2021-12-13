@@ -9,6 +9,4 @@ public class User {
 
     private ArrayList<String> participatedZones;
     private ArrayList<String> leaderZones;
-
-    private boolean isActive;
 }

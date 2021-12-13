@@ -106,41 +106,35 @@ public class DatabaseHandler {
 //                });
 //    }
 //
-//    public static void createUserOnDatabase(FirebaseFirestore db, Context context,
-//                                            ProgressDialog pd, String userName,
-//                                            String userPassword, String userEmail,
-//                                            int userAge) {
-//
-//        // set title of progress bar
-//        pd.setTitle("Signing up ...");
-//
-//        // show progress when user press add button
-//        pd.show();
-//
-//        // Create a new user
-//        HashMap<String, Object> data = new HashMap<>();
-//        String randomId = UUID.randomUUID().toString();
-//
-//        // put zone data into temp data HashMap
-//        data.put("userId", randomId);
-//        data.put("userName", userName);
-//        data.put("userPassword", userPassword);
-//        data.put("userEmail", userEmail);
-//        data.put("userAge", Integer.toString(userAge));
-//
-//        // Add a new document with a generated ID
-//        db.collection("users").document(randomId).set(data)
-//                .addOnSuccessListener(documentReference -> {
-//                    // this will be called when data added successfully
-//                    pd.dismiss();
-//                    Toast.makeText(context, "Signed up successfully!", Toast.LENGTH_SHORT).show();
-//                })
-//                .addOnFailureListener(e -> {
-//                    // this will be called when there is an error while adding
-//                    pd.dismiss();
-//                    Toast.makeText(context, "Signed up failed!", Toast.LENGTH_SHORT).show();
-//                });
-//    }
+    public static void createUserOnDatabase(FirebaseFirestore db, Context context, ProgressDialog pd,
+                                            String userId,
+                                            String userName,
+                                            String userPhone) {
+
+        // show progress when user press add button
+        pd.show();
+
+        // Create a new user
+        HashMap<String, Object> data = new HashMap<>();
+
+        // put zone data into temp data HashMap
+        data.put("userId", userId);
+        data.put("userName", userName);
+        data.put("userEmail", userPhone);
+
+        // Add a new document with a generated ID
+        db.collection("users").document(userId).set(data)
+                .addOnSuccessListener(documentReference -> {
+                    // this will be called when data added successfully
+                    pd.dismiss();
+                    Toast.makeText(context, "Signed up successfully!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    // this will be called when there is an error while adding
+                    pd.dismiss();
+                    Toast.makeText(context, "Signed up failed!", Toast.LENGTH_SHORT).show();
+                });
+    }
 //
 //    public static void verifyUserLogin(FirebaseFirestore db, Context context, ProgressDialog pd,
 //                                       String userEmail, String userPassword,

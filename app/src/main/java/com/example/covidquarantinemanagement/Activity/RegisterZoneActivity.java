@@ -7,11 +7,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.textfield.TextInputLayout;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -53,7 +56,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
 
     private ArrayAdapter<String> cityAdapter, districtAdapter, wardAdapter;
 
-    private String site_name, city, district, ward, street, capacity;
+    private String zone_name, city, district, ward, street, capacity;
     private void parseJson() {
         InputStream is = getResources().openRawResource(R.raw.dvhcvn);
         Writer writer = new StringWriter();
@@ -95,7 +98,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
         regCity = (AutoCompleteTextView) findViewById(R.id.reg_city);
         regDistrict = (AutoCompleteTextView) findViewById(R.id.reg_district);
         regWard = (AutoCompleteTextView) findViewById(R.id.rec_ward);
-        regName = findViewById(R.id.reg_site_name);
+        regName = findViewById(R.id.reg_zone_name);
         regStreet = findViewById(R.id.rec_street);
         regCapacity = findViewById(R.id.reg_capacity);
 
@@ -136,7 +139,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
             @Override
             public void onClick(View v) {
                 // Collect the information
-                site_name = regName.getText().toString();
+                zone_name = regName.getText().toString();
                 city = regCity.getText().toString();
                 district = regDistrict.getText().toString();
                 ward = regWard.getText().toString();
@@ -146,7 +149,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
                 String fullAddress = street + " " +  ward + " " + district + " " + city;
                 System.out.println(fullAddress);
 
-                if (!site_name.equals("") & !city.equals("") & !district.equals("") & !ward.equals("") & !street.equals("")) {
+                if (!zone_name.equals("") & !city.equals("") & !district.equals("") & !ward.equals("") & !street.equals("")) {
                     try {
                         List<Address> addresses = geocoder.getFromLocationName(fullAddress, 1);
                         if (addresses.size() > 0) {

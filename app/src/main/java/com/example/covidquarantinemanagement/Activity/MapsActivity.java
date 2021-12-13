@@ -4,6 +4,7 @@ package com.example.covidquarantinemanagement.Activity;
 // Github: https://github.com/googlemaps/android-samples/blob/c6a1b5ddb5fd69997815105ffec8eb1ba70d4d8a/tutorials/java/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 
 import android.annotation.SuppressLint;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,9 +16,14 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -26,6 +32,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.covidquarantinemanagement.R;
@@ -43,8 +50,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.IOException;
 import java.util.List;
@@ -74,11 +83,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DrawerLayout mDrawerLayout;
 
     // Setup Firestore database
-//    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-//    private final CollectionReference zones = db.collection("zones");
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     // Setup Firebase Authentication
     private FirebaseAuth mAuth;
+    private FirebaseUser mUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,12 +124,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkUserStatus();
 
         // Login Button
-        Button loginButton = (Button) findViewById(R.id.map_login_button);
-        loginButton.setOnClickListener(new View.OnClickListener() {
+        NavigationView navigationView = (NavigationView) findViewById(R.id.navigation_view);
+        View headerView = navigationView.getHeaderView(0);
+        TextView logInSignUp = (TextView) headerView.findViewById(R.id.loginsignuptext);
+        logInSignUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(MapsActivity.this, LogInActivity.class);
                 startActivityForResult(i,300);
+                Toast.makeText(MapsActivity.this,"Clicked on Login button",Toast.LENGTH_LONG).show();
             }
         });
 
@@ -151,12 +163,49 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void checkUserStatus() {
         // Get current user
-        FirebaseUser mUser = mAuth.getCurrentUser();
+        mUser = mAuth.getCurrentUser();
         if (mUser != null) {
-            // User logged in
-            String phone = mUser.getPhoneNumber();
-
+            updateLoginUI();
         }
+    }
+
+    private void updateLoginUI() {
+        // User logged in
+        String userPhone = mUser.getPhoneNumber();
+        String userName =
+        userPhone = userPhone.replaceAll("\\d(?=(?:\\D*\\d){4})", "*");
+
+        // Edit navigation view
+        NavigationView navigationView = (NavigationView) findViewById(R.id.navigation_view);
+
+        // Edit header
+        View headerView = navigationView.getHeaderView(0);
+
+        TextView logInSignUp = (TextView) headerView.findViewById(R.id.loginsignuptext);
+        logInSignUp.setVisibility(View.INVISIBLE);
+        LinearLayout currentUserInfo = (LinearLayout) headerView.findViewById(R.id.current_user_info_box);
+        TextView currentUserPhone = (TextView) headerView.findViewById(R.id.current_user_phone);
+        TextView currentUserName = (TextView) headerView.findViewById(R.id.current_user_name);
+
+
+        currentUserPhone.setText(userPhone);
+        currentUserInfo.setVisibility(View.VISIBLE);
+
+        // Edit menu
+        Menu menuView = navigationView.getMenu();
+        MenuItem logoutItem = menuView.findItem(R.id.nav_logout);
+        logoutItem.setVisible(true);
+
+        // Setup logout function
+        logoutItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                mAuth.getInstance().signOut();
+                finish();
+                startActivity(getIntent());
+                return true;
+            }
+        });
     }
 
     /**
@@ -313,6 +362,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+        // Add new zone to database
         if (requestCode == 100) {
             if (resultCode == RESULT_OK) {
                 double newSiteLatitude = data.getDoubleExtra("latitude",0.00);
@@ -328,7 +378,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(MapsActivity.this, "New Site has been registered", Toast.LENGTH_LONG).show();
                 }
             }
+        // Move camera to searched zone
+//        else if (requestCode == 200) {
+//            if (resultCode == RESULT_OK) {
+//
+//            }
+//        }
+        // User Login successfully
+        else if (requestCode == 300) {
+            if (resultCode == RESULT_OK) {
+                checkUserStatus();
+            }
         }
+    }
     private static BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorZoneId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorZoneId);
         vectorDrawable.setBounds(0,0,
@@ -337,5 +399,14 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Canvas canvas = new Canvas(bitmap);
         vectorDrawable.draw(canvas);
         return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
     }
 }
