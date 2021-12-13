@@ -19,6 +19,7 @@
         android:theme="@style/Theme.CovidQuarantineManagement">
         <activity
             android:name=".Activity.LogInActivity"
+            android:label="Log In | Sign Up"
             android:exported="false" />
         <activity
             android:name=".Activity.RegisterZoneActivity"

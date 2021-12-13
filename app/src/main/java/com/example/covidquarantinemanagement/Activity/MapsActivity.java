@@ -29,6 +29,7 @@ import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.covidquarantinemanagement.R;
+import com.example.covidquarantinemanagement.databinding.ActivityMapsBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -42,11 +43,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.io.IOException;
 import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+    private ActivityMapsBinding binding;
 
     // Setup Google Map
     private GoogleMap map;
@@ -73,9 +77,13 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 //    private final CollectionReference zones = db.collection("zones");
 
+    // Setup Firebase Authentication
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        binding = ActivityMapsBinding.inflate(getLayoutInflater());
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -84,7 +92,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         // Retrieve the content view that renders the map.
-        setContentView(R.layout.activity_maps);
+        setContentView(binding.getRoot());
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -102,6 +110,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        mAuth = FirebaseAuth.getInstance();
+        checkUserStatus();
+
+        // Login Button
+        Button loginButton = (Button) findViewById(R.id.map_login_button);
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MapsActivity.this, LogInActivity.class);
+                startActivityForResult(i,300);
+            }
+        });
 
         // Add Button + Listener
         ImageButton addButton = (ImageButton) findViewById(R.id.add_site_button);
@@ -126,6 +147,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                startActivityForResult(i,200);
 //            }
 //        });
+    }
+
+    private void checkUserStatus() {
+        // Get current user
+        FirebaseUser mUser = mAuth.getCurrentUser();
+        if (mUser != null) {
+            // User logged in
+            String phone = mUser.getPhoneNumber();
+
+        }
     }
 
     /**

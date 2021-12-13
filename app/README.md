@@ -1,0 +1,1 @@
+Run `keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android` to get the Certificate fingerprints and implement your own Firebase Authentication

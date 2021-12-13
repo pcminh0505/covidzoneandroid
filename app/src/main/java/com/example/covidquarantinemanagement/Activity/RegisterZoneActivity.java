@@ -43,7 +43,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
 
     private Geocoder geocoder;
 
-    private EditText regName, regStreet;
+    private EditText regName, regStreet, regCapacity;
     private AutoCompleteTextView regCity, regDistrict, regWard;
 
     private HashMap<String, String> level1 = new HashMap<String, String>();
@@ -53,7 +53,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
 
     private ArrayAdapter<String> cityAdapter, districtAdapter, wardAdapter;
 
-    private String site_name, city, district, ward, street;
+    private String site_name, city, district, ward, street, capacity;
     private void parseJson() {
         InputStream is = getResources().openRawResource(R.raw.dvhcvn);
         Writer writer = new StringWriter();
@@ -97,6 +97,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
         regWard = (AutoCompleteTextView) findViewById(R.id.rec_ward);
         regName = findViewById(R.id.reg_site_name);
         regStreet = findViewById(R.id.rec_street);
+        regCapacity = findViewById(R.id.reg_capacity);
 
         try {
             dtb = new JSONArray(dvhcvn);
@@ -140,6 +141,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
                 district = regDistrict.getText().toString();
                 ward = regWard.getText().toString();
                 street = regStreet.getText().toString();
+                capacity = regCapacity.getText().toString();
 
                 String fullAddress = street + " " +  ward + " " + district + " " + city;
                 System.out.println(fullAddress);
@@ -152,6 +154,9 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
                             Intent i = new Intent(RegisterZoneActivity.this,MapsActivity.class);
                             i.putExtra("latitude", address.getLatitude());
                             i.putExtra("longitude", address.getLongitude());
+
+                            // Push to database
+
                             setResult(RESULT_OK,i);
                             finish();
                         }
