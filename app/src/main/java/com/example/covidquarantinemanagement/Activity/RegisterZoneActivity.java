@@ -142,6 +142,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
                 street = regStreet.getText().toString();
 
                 String fullAddress = street + " " +  ward + " " + district + " " + city;
+                System.out.println(fullAddress);
 
                 if (!site_name.equals("") & !city.equals("") & !district.equals("") & !ward.equals("") & !street.equals("")) {
                     try {
@@ -154,11 +155,9 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
                             setResult(RESULT_OK,i);
                             finish();
                         }
-                        else {
-                            Toast.makeText(getApplicationContext(), "Please recheck your address", Toast.LENGTH_SHORT).show();
-                        }
                     } catch (IOException e) {
                         e.printStackTrace();
+                        Toast.makeText(getApplicationContext(), "Please recheck your address", Toast.LENGTH_SHORT).show();
                     }
                 }
                 else {
