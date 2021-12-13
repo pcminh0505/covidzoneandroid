@@ -11,7 +11,4 @@ public class User {
     private ArrayList<String> leaderZones;
 
     private boolean isActive;
-
-
-
 }
