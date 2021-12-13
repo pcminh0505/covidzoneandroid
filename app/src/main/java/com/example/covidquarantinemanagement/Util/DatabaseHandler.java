@@ -1,11 +1,20 @@
 package com.example.covidquarantinemanagement.Util;
 
+import static android.content.ContentValues.TAG;
+
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 
 import com.example.covidquarantinemanagement.Model.Zone;
 import com.example.covidquarantinemanagement.Model.User;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -120,7 +129,7 @@ public class DatabaseHandler {
         // put zone data into temp data HashMap
         data.put("userId", userId);
         data.put("userName", userName);
-        data.put("userEmail", userPhone);
+        data.put("userPhone", userPhone);
 
         // Add a new document with a generated ID
         db.collection("users").document(userId).set(data)
@@ -136,6 +145,26 @@ public class DatabaseHandler {
                 });
     }
 //
+    public static void getSingleUserOnDatabase(FirebaseFirestore db, String uid, TextView tvName, TextView tvPhone) {
+        DocumentReference docRef = db.collection("users").document(uid);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    // Document found in the offline cache
+                    DocumentSnapshot document = task.getResult();
+                    String dtbUserName = document.getString("userName");
+                    String dtbUserPhone = document.getString("userPhone");
+                    // Hide middle phone number
+                    dtbUserPhone = dtbUserPhone.replaceAll("\\d(?=(?:\\D*\\d){4})", "*");
+                    tvName.setText(dtbUserName);
+                    tvPhone.setText(dtbUserPhone);
+                } else {
+                    Log.d(TAG, "Cached get failed: ", task.getException());
+                }
+            }
+        });
+    }
 //    public static void verifyUserLogin(FirebaseFirestore db, Context context, ProgressDialog pd,
 //                                       String userEmail, String userPassword,
 //                                       ArrayList<Boolean> results,

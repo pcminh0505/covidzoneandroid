@@ -235,15 +235,14 @@ public class LogInActivity extends AppCompatActivity {
                          if (!TextUtils.isEmpty(name)) {
                              // TODO: Create user
                              // set title of progress bar
-                             pd.setTitle("Signing up ...");
+                             pd.setMessage("Signing up ...");
                              DatabaseHandler.createUserOnDatabase(db,LogInActivity.this,pd,uid,name,phone);
                          }
-                         pd.setMessage("Loggin In");
+                         pd.setMessage("Logging In");
                          Toast.makeText(LogInActivity.this, "Logged in as " + phone, Toast.LENGTH_SHORT).show();
 
                          // Start profile activity
                          Intent i = new Intent(LogInActivity.this, MapsActivity.class);
-                         i.putExtra("name",name);
                          setResult(RESULT_OK, i);
                          finish();
                      }

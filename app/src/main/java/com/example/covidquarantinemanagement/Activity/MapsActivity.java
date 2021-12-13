@@ -35,7 +35,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.example.covidquarantinemanagement.Model.Zone;
 import com.example.covidquarantinemanagement.R;
+import com.example.covidquarantinemanagement.Util.DatabaseHandler;
 import com.example.covidquarantinemanagement.databinding.ActivityMapsBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -56,6 +58,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -88,6 +91,9 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     // Setup Firebase Authentication
     private FirebaseAuth mAuth;
     private FirebaseUser mUser;
+
+    // Current Zones on Maps
+    private ArrayList<Zone> zones = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,10 +147,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
+                if (mUser != null) {
+                    Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
 //                ArrayList<String> existedList = Helper.createSymbolList(mCrypto);
 //                i.putExtra("existedList",existedList);
-                startActivityForResult(i,100);
+                    startActivityForResult(i,100);
+                }
+                else {
+                    Toast.makeText(MapsActivity.this, "Please login to create a new zone", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -172,8 +183,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void updateLoginUI() {
         // User logged in
         String userPhone = mUser.getPhoneNumber();
-        String userName =
-        userPhone = userPhone.replaceAll("\\d(?=(?:\\D*\\d){4})", "*");
+        String userId = mUser.getUid();
+
 
         // Edit navigation view
         NavigationView navigationView = (NavigationView) findViewById(R.id.navigation_view);
@@ -187,8 +198,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         TextView currentUserPhone = (TextView) headerView.findViewById(R.id.current_user_phone);
         TextView currentUserName = (TextView) headerView.findViewById(R.id.current_user_name);
 
-
-        currentUserPhone.setText(userPhone);
+        DatabaseHandler.getSingleUserOnDatabase(db,userId,currentUserName,currentUserPhone);
         currentUserInfo.setVisibility(View.VISIBLE);
 
         // Edit menu
