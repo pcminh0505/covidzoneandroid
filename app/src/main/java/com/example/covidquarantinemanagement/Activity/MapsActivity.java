@@ -4,6 +4,7 @@ package com.example.covidquarantinemanagement.Activity;
 // Github: https://github.com/googlemaps/android-samples/blob/c6a1b5ddb5fd69997815105ffec8eb1ba70d4d8a/tutorials/java/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +16,8 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -94,6 +97,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // Current Zones on Maps
     private ArrayList<Zone> zones = new ArrayList<>();
+    private ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,6 +129,24 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        // Init process dialog
+        pd = new ProgressDialog(this);
+        pd.setTitle("Please wait...");
+        pd.setCanceledOnTouchOutside(false);
+
+        DatabaseHandler.getZonesOnDatabase(db,pd,zones);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            for (Zone z : zones) {
+                LatLng zLatLng = new LatLng(z.getZoneLatitude(),z.getZoneLongitude());
+                MarkerOptions markerOptions = new MarkerOptions()
+                        .position(zLatLng)
+                        .icon(bitmapDescriptorFromVector(this,R.drawable.zone_marker));
+                map.addMarker(markerOptions);
+            }
+        }, 2000);
+        System.out.println(zones);
+
 
         mAuth = FirebaseAuth.getInstance();
         checkUserStatus();
@@ -198,7 +220,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         TextView currentUserPhone = (TextView) headerView.findViewById(R.id.current_user_phone);
         TextView currentUserName = (TextView) headerView.findViewById(R.id.current_user_name);
 
-        DatabaseHandler.getSingleUserOnDatabase(db,userId,currentUserName,currentUserPhone);
+        ArrayList<String> currentUser = new ArrayList<>();
+
+        DatabaseHandler.getSingleUserOnDatabase(db,MapsActivity.this,userId,currentUser);
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (currentUser.get(0) != null || currentUser.get(1) != null) {
+                currentUserName.setText(currentUser.get(0));
+                currentUserPhone.setText(currentUser.get(1));
+            }
+        }, 2000);
+
         currentUserInfo.setVisibility(View.VISIBLE);
 
         // Edit menu
@@ -378,11 +409,18 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 double newSiteLatitude = data.getDoubleExtra("latitude",0.00);
                 double newSiteLongitude = data.getDoubleExtra("longitude",0.00);
 
+                DatabaseHandler.getZonesOnDatabase(db,pd,zones);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    for (Zone z : zones) {
+                        LatLng zLatLng = new LatLng(z.getZoneLatitude(),z.getZoneLongitude());
+                        MarkerOptions markerOptions = new MarkerOptions()
+                                .position(zLatLng)
+                                .icon(bitmapDescriptorFromVector(this,R.drawable.zone_marker));
+                        map.addMarker(markerOptions);
+                    }
+                }, 2000);
+
                 LatLng newSite = new LatLng(newSiteLatitude, newSiteLongitude);
-                MarkerOptions markerOptions = new MarkerOptions()
-                        .position(newSite)
-                        .icon(bitmapDescriptorFromVector(this,R.drawable.zone_marker));
-                map.addMarker(markerOptions);
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(newSite, 16));
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(newSite, 15));
                 Toast.makeText(MapsActivity.this, "New Site has been registered", Toast.LENGTH_LONG).show();
@@ -401,6 +439,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
+
     private static BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorZoneId) {
         Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorZoneId);
         vectorDrawable.setBounds(0,0,

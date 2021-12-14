@@ -10,6 +10,8 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.UnderlineSpan;
@@ -32,7 +34,10 @@ import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.type.DateTime;
 import com.hbb20.CountryCodePicker;
+
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class LogInActivity extends AppCompatActivity {
@@ -215,6 +220,9 @@ public class LogInActivity extends AppCompatActivity {
     private void verifyPhoneNumberWithCode(String mVerificationID, String otp) {
         pd.setMessage("Verifying OTP");
         pd.show();
+
+        ArrayList<String> currentUser = new ArrayList<>();
+        DatabaseHandler.getSingleUserOnDatabase(db,LogInActivity.this,mVerificationID,currentUser);
 
         PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationID, otp);
         signInWithAuthCredential(credential);

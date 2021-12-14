@@ -2,12 +2,17 @@ package com.example.covidquarantinemanagement.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.covidquarantinemanagement.R;
+import com.example.covidquarantinemanagement.Util.DatabaseHandler;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
@@ -39,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 public class RegisterZoneActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
     private String dvhcvn;
@@ -56,7 +62,17 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
 
     private ArrayAdapter<String> cityAdapter, districtAdapter, wardAdapter;
 
-    private String zone_name, city, district, ward, street, capacity;
+    private String zone_name, city, district, ward, street;
+    private int capacity;
+
+    private ProgressDialog pd;
+
+    // Setup Firestore database
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private FirebaseAuth mAuth;
+    private FirebaseUser mUser;
+
+
     private void parseJson() {
         InputStream is = getResources().openRawResource(R.raw.dvhcvn);
         Writer writer = new StringWriter();
@@ -94,6 +110,11 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
         geocoder = new Geocoder(this);
 
         parseJson();
+
+        // Init process dialog
+        pd = new ProgressDialog(this);
+        pd.setTitle("Please wait...");
+        pd.setCanceledOnTouchOutside(false);
 
         regCity = (AutoCompleteTextView) findViewById(R.id.reg_city);
         regDistrict = (AutoCompleteTextView) findViewById(R.id.reg_district);
@@ -144,8 +165,8 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
                 district = regDistrict.getText().toString();
                 ward = regWard.getText().toString();
                 street = regStreet.getText().toString();
-                capacity = regCapacity.getText().toString();
-
+                capacity = Integer.parseInt(regCapacity.getText().toString());
+                String id = UUID.randomUUID().toString();
                 String fullAddress = street + " " +  ward + " " + district + " " + city;
                 System.out.println(fullAddress);
 
@@ -159,7 +180,18 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
                             i.putExtra("longitude", address.getLongitude());
 
                             // Push to database
+                            mAuth = FirebaseAuth.getInstance();
+                            mUser = mAuth.getCurrentUser();
+                            String userId = mUser.getUid();
+                            String zoneId = UUID.randomUUID().toString();
+                            ArrayList<String> result = new ArrayList<>();
 
+
+                            DatabaseHandler.createZoneOnDatabase(db,RegisterZoneActivity.this,pd,userId,zone_name,capacity,
+                                    zoneId,
+                                    city, district, ward, street,
+                                    address.getLatitude(),
+                                    address.getLongitude());
                             setResult(RESULT_OK,i);
                             finish();
                         }
