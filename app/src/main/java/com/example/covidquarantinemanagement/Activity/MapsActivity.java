@@ -4,26 +4,30 @@ package com.example.covidquarantinemanagement.Activity;
 // Github: https://github.com/googlemaps/android-samples/blob/c6a1b5ddb5fd69997815105ffec8eb1ba70d4d8a/tutorials/java/CurrentPlaceDetailsOnMap/app/src/main/java/com/example/currentplacedetailsonmap/MapsActivityCurrentPlace.java
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -38,6 +42,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.example.covidquarantinemanagement.Adapter.InfoWindowAdapter;
+import com.example.covidquarantinemanagement.Model.User;
 import com.example.covidquarantinemanagement.Model.Zone;
 import com.example.covidquarantinemanagement.R;
 import com.example.covidquarantinemanagement.Util.DatabaseHandler;
@@ -52,6 +58,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -60,9 +67,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Map;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
     private ActivityMapsBinding binding;
@@ -97,6 +104,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     // Current Zones on Maps
     private ArrayList<Zone> zones = new ArrayList<>();
+    private User currentUser = new User();
     private ProgressDialog pd;
 
     @Override
@@ -138,13 +146,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         DatabaseHandler.getZonesOnDatabase(db,pd,zones);
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             for (Zone z : zones) {
-                LatLng zLatLng = new LatLng(z.getZoneLatitude(),z.getZoneLongitude());
-                MarkerOptions markerOptions = new MarkerOptions()
-                        .position(zLatLng)
-                        .icon(bitmapDescriptorFromVector(this,R.drawable.zone_marker));
-                map.addMarker(markerOptions);
+                ArrayList<String> zoneLeader = new ArrayList<>();
+                DatabaseHandler.getSingleUserOnDatabase(db, MapsActivity.this, z.getZoneLeader(), zoneLeader);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    LatLng zLatLng = new LatLng(z.getZoneLatitude(),z.getZoneLongitude());
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(zLatLng)
+                            .icon(bitmapDescriptorFromVector(this,R.drawable.zone_marker))
+                            .title(z.getZoneName())
+                            .snippet(z.getZoneStreetAddress() + " " + z.getZoneLevel3Address() + " "
+                                    + z.getZoneLevel2Address() + " " + z.getZoneLevel1Address() + "|"
+                                    + z.getZoneCapacity()
+                                    + "|" + zoneLeader.get(0) + "|" + zoneLeader.get(1)
+                                    + "|" + z.getZoneId());
+                    map.addMarker(markerOptions);
+                }, 5000);
             }
-        }, 2000);
+        }, 5000);
         System.out.println(zones);
 
 
@@ -160,7 +178,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onClick(View v) {
                 Intent i = new Intent(MapsActivity.this, LogInActivity.class);
                 startActivityForResult(i,300);
-                Toast.makeText(MapsActivity.this,"Clicked on Login button",Toast.LENGTH_LONG).show();
             }
         });
 
@@ -199,12 +216,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mUser = mAuth.getCurrentUser();
         if (mUser != null) {
             updateLoginUI();
+
         }
     }
 
     private void updateLoginUI() {
         // User logged in
-        String userPhone = mUser.getPhoneNumber();
         String userId = mUser.getUid();
 
 
@@ -220,15 +237,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         TextView currentUserPhone = (TextView) headerView.findViewById(R.id.current_user_phone);
         TextView currentUserName = (TextView) headerView.findViewById(R.id.current_user_name);
 
-        ArrayList<String> currentUser = new ArrayList<>();
-
-        DatabaseHandler.getSingleUserOnDatabase(db,MapsActivity.this,userId,currentUser);
+        ArrayList<String> tempUser = new ArrayList<>();
+        DatabaseHandler.getSingleUserOnDatabase(db,MapsActivity.this,userId,tempUser);
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (currentUser.get(0) != null || currentUser.get(1) != null) {
-                currentUserName.setText(currentUser.get(0));
-                currentUserPhone.setText(currentUser.get(1));
+            if (tempUser.get(0) != null || tempUser.get(1) != null) {
+                currentUserName.setText(tempUser.get(0));
+                // Hide middle phone number
+                currentUserPhone.setText(tempUser.get(1).replaceAll("\\d(?=(?:\\D*\\d){4})", "*"));
+                // Add to current user object
+                currentUser.setId(tempUser.get(2));
+                currentUser.setId(tempUser.get(0));
+                currentUser.setId(tempUser.get(1));
             }
-        }, 2000);
+        }, 10000);
 
         currentUserInfo.setVisibility(View.VISIBLE);
 
@@ -285,6 +306,80 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         map.getUiSettings().setZoomControlsEnabled(true);
 
+        map.setInfoWindowAdapter(new InfoWindowAdapter(MapsActivity.this));
+
+        map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                System.out.println("Click roi neeeeeeeeeeee");
+
+                String snippet = marker.getSnippet();
+                String[] data = snippet.split("\\|");
+                // data[3]: Leader Contact
+                // data[4] = zoneID
+
+                System.out.println(data[3]);
+                System.out.println(mUser.getPhoneNumber());
+
+                // Not login --> Disable info window touch
+                if (mUser == null) {
+                    Toast.makeText(MapsActivity.this, "You need to login to register for volunteer", Toast.LENGTH_SHORT).show();
+                }
+                // Current user (leader) click on his zone --> Dismiss registration
+                else if (data[3].equals(mUser.getPhoneNumber())) {
+                    Toast.makeText(MapsActivity.this, "You are the leader of this zone!", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    // Show register dialog
+                    final Dialog dialog = new Dialog(MapsActivity.this);
+                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                    dialog.setContentView(R.layout.layout_register_dialog);
+
+                    Window window = dialog.getWindow();
+                    if (window == null) {
+                        return;
+                    }
+
+                    window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+                    window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+                    WindowManager.LayoutParams windowAttributes = window.getAttributes();
+                    windowAttributes.gravity = Gravity.BOTTOM;
+                    dialog.setCancelable(true);
+
+                    EditText friendRegistration = dialog.findViewById(R.id.friend_registration);
+                    Button btnCancel = dialog.findViewById(R.id.btn_cancel);
+                    Button btnRegister = dialog.findViewById(R.id.btn_register);
+
+                    btnRegister.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            // Update the volunteer list
+                            String friendNumber = friendRegistration.getText().toString();
+                            ArrayList<String> appendRequest = new ArrayList<>();
+                            appendRequest.add(mUser.getPhoneNumber());
+                            // Submitted friend's number
+                            if (!TextUtils.isEmpty(friendNumber)) {
+                                // Suppose they enter the correct number
+                                appendRequest.add(friendNumber);
+                            }
+                            // Push to volunteerList
+                            DatabaseHandler.addVolunteer(db, pd, MapsActivity.this ,data[4],appendRequest);
+                            dialog.dismiss();
+                        }
+                    });
+
+                    btnCancel.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                        }
+                    });
+
+                    dialog.show();
+                }
+            }
+        });
 //        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
 //            @Override
 //            public void onMapClick(LatLng latLng) {
@@ -458,4 +553,5 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             super.onBackPressed();
         }
     }
+
 }

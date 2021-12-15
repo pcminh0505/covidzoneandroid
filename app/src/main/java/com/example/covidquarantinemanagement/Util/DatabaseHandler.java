@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.example.covidquarantinemanagement.Activity.MapsActivity;
 import com.example.covidquarantinemanagement.Activity.RegisterZoneActivity;
 import com.example.covidquarantinemanagement.Model.Zone;
 import com.example.covidquarantinemanagement.Model.User;
@@ -18,11 +19,15 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class DatabaseHandler {
@@ -59,10 +64,8 @@ public class DatabaseHandler {
         data.put("zoneCapacity", Integer.toString(zoneCapacity));
 
         // Initialize (string) array
-        String zoneCurrentVolunteer = "";
-        String zoneTestData = "";
-        data.put("zoneCurrentVolunteer", zoneCurrentVolunteer);
-        data.put("zoneTestData", zoneTestData);
+        data.put("zoneCurrentVolunteer", Arrays.asList(""));
+        data.put("zoneTestData", Arrays.asList(""));
 
         // Add a new document with a generated ID
         db.collection("zones").document(zoneId).set(data)
@@ -105,8 +108,8 @@ public class DatabaseHandler {
                                 doc.getString("zoneStreetAddress"),
                                 Double.parseDouble(doc.getString("zoneLatitude")),
                                 Double.parseDouble(doc.getString("zoneLongitude")),
-                                doc.getString("zoneCurrentVolunteers"),
-                                doc.getString("zoneTestData")
+                                (ArrayList<String>) doc.get("zoneCurrentVolunteers"),
+                                (ArrayList<String>) doc.get("zoneTestData")
                         );
                         zonesContainer.add(model);
                     }
@@ -150,7 +153,6 @@ public class DatabaseHandler {
     public static void getSingleUserOnDatabase(FirebaseFirestore db, Context context, String uid, ArrayList<String> currentUser) {
         DocumentReference docRef = db.collection("users").document(uid);
 
-
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -159,15 +161,15 @@ public class DatabaseHandler {
                     DocumentSnapshot document = task.getResult();
                     String dtbUserName = document.getString("userName");
                     String dtbUserPhone = document.getString("userPhone");
+                    String dtbUserId = document.getString("userId");
 
                     if (dtbUserName == null || dtbUserPhone == null) {
                         Toast.makeText(context, "User has not been registered! Please try again", Toast.LENGTH_SHORT).show();
                     }
                     else {
-                        // Hide middle phone number
-                        dtbUserPhone = dtbUserPhone.replaceAll("\\d(?=(?:\\D*\\d){4})", "*");
                         currentUser.add(dtbUserName);
                         currentUser.add(dtbUserPhone);
+                        currentUser.add(dtbUserId);
                     }
 //                    tvName.setText(dtbUserName);
 //                    tvPhone.setText(dtbUserPhone);
@@ -178,7 +180,7 @@ public class DatabaseHandler {
         });
     }
 
-    public static void checkRegisteredUser(FirebaseFirestore db, ProgressDialog pd, String phone, ArrayList<Integer> isRegistered ) {
+    public static void checkRegisteredUser(FirebaseFirestore db, ProgressDialog pd,  String phone, ArrayList<Integer> isRegistered ) {
         // set title of progress bar
         pd.setTitle("Checking phone number...");
 
@@ -204,5 +206,21 @@ public class DatabaseHandler {
                 .addOnFailureListener(e -> {
                     pd.dismiss();
                 });
+    }
+
+    public static void addVolunteer (FirebaseFirestore db, ProgressDialog pd, Context context, String zoneId, ArrayList<String> newVolunteerList) {
+        // set title of progress bar
+        pd.setTitle("Adding new volunteer...");
+
+        // show progress when user press search button
+        pd.show();
+
+        DocumentReference zoneDocRef = db.collection("zones").document(zoneId);
+        for (String newVolunteer :
+                newVolunteerList) {
+            zoneDocRef.update("zoneCurrentVolunteer", FieldValue.arrayUnion(newVolunteer));
+        }
+        Toast.makeText(context, "Register for volunteer successfully!", Toast.LENGTH_SHORT).show();
+        pd.dismiss();
     }
 }

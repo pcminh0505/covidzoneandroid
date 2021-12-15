@@ -155,7 +155,7 @@ public class LogInActivity extends AppCompatActivity {
                     }, 5000);
                     System.out.println(results);
                     Toast.makeText(LogInActivity.this,"isLogIn = " + isLogIn, Toast.LENGTH_SHORT).show();
-                    if ((isLogIn == false) && (TextUtils.isEmpty(userName)) && (binding.userName.getVisibility() == View.VISIBLE)) {
+                    if ((isLogIn == false) && ((TextUtils.isEmpty(userName)) && (binding.userName.getVisibility() == View.VISIBLE))) {
                         Toast.makeText(LogInActivity.this, "Please enter all the input field(s)...", Toast.LENGTH_SHORT).show();
                     }
                     else {

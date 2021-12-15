@@ -14,13 +14,13 @@ public class Zone {
 
     private double zoneLatitude, zoneLongitude;
 
-    private String zoneCurrentVolunteers;
-    private String zoneTestData;
+    private ArrayList<String> zoneCurrentVolunteers;
+    private ArrayList<String> zoneTestData;
 
     public Zone(String zoneId, String zoneLeader, String zoneName, int zoneCapacity,
                 String zoneLevel1Address, String zoneLevel2Address, String zoneLevel3Address, String zoneStreetAddress,
                 double zoneLatitude, double zoneLongitude,
-                String zoneCurrentVolunteers, String zoneTestData) {
+                ArrayList<String> zoneCurrentVolunteers, ArrayList<String> zoneTestData) {
         this.zoneId = zoneId;
         this.zoneLeader = zoneLeader;
         this.zoneName = zoneName;
@@ -107,19 +107,19 @@ public class Zone {
         this.zoneLongitude = zoneLongitude;
     }
 
-    public String getZoneCurrentVolunteers() {
+    public ArrayList<String> getZoneCurrentVolunteers() {
         return zoneCurrentVolunteers;
     }
 
-    public void setZoneCurrentVolunteers(String zoneCurrentVolunteers) {
+    public void setZoneCurrentVolunteers(ArrayList<String> zoneCurrentVolunteers) {
         this.zoneCurrentVolunteers = zoneCurrentVolunteers;
     }
 
-    public String getZoneTestData() {
+    public ArrayList<String> getZoneTestData() {
         return zoneTestData;
     }
 
-    public void setZoneTestData(String zoneTestData) {
+    public void setZoneTestData(ArrayList<String> zoneTestData) {
         this.zoneTestData = zoneTestData;
     }
 

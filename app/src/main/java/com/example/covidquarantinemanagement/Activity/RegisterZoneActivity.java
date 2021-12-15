@@ -3,23 +3,16 @@ package com.example.covidquarantinemanagement.Activity;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.covidquarantinemanagement.R;
 import com.example.covidquarantinemanagement.Util.DatabaseHandler;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -43,7 +36,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 public class RegisterZoneActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
@@ -138,9 +130,9 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
             e.printStackTrace();
         }
 
-        cityAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.dropdown_item, level1.keySet().toArray(new String[0]));
-        districtAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.dropdown_item, level2.keySet().toArray(new String[0]));
-        wardAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.dropdown_item, level3);
+        cityAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.layout_dropdown_item, level1.keySet().toArray(new String[0]));
+        districtAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.layout_dropdown_item, level2.keySet().toArray(new String[0]));
+        wardAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.layout_dropdown_item, level3);
 
         regCity.setAdapter(cityAdapter);
         regDistrict.setAdapter(districtAdapter);
@@ -258,13 +250,13 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
                     e.printStackTrace();
                 }
             }
-            districtAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.dropdown_item, level2.keySet().toArray(new String[0]));
+            districtAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.layout_dropdown_item, level2.keySet().toArray(new String[0]));
             regDistrict.setAdapter(districtAdapter);
 //            districtAdapter.notifyDataSetChanged();
             // Clear level 3
             regWard.setText("");
             level3.clear();
-            wardAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.dropdown_item, level3);
+            wardAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.layout_dropdown_item, level3);
             regWard.setAdapter(wardAdapter);
         }  else if (currentLevelName.containsValue("quận") |
                 currentLevelName.containsValue("huyện") |
@@ -313,7 +305,7 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
                     }
                 }
             }
-            wardAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.dropdown_item, level3);
+            wardAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.layout_dropdown_item, level3);
             regWard.setAdapter(wardAdapter);
         }
     }
