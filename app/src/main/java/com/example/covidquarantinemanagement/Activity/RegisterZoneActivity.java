@@ -260,10 +260,12 @@ public class RegisterZoneActivity extends AppCompatActivity implements AdapterVi
             }
             districtAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.dropdown_item, level2.keySet().toArray(new String[0]));
             regDistrict.setAdapter(districtAdapter);
-            districtAdapter.notifyDataSetChanged();
+//            districtAdapter.notifyDataSetChanged();
             // Clear level 3
             regWard.setText("");
             level3.clear();
+            wardAdapter = new ArrayAdapter<>(getApplicationContext(), R.layout.dropdown_item, level3);
+            regWard.setAdapter(wardAdapter);
         }  else if (currentLevelName.containsValue("quận") |
                 currentLevelName.containsValue("huyện") |
                 currentLevelName.containsValue("thành phố") |

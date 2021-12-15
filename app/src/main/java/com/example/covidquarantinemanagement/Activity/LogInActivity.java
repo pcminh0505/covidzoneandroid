@@ -32,13 +32,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthOptions;
 import com.google.firebase.auth.PhoneAuthProvider;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.type.DateTime;
 import com.hbb20.CountryCodePicker;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class LogInActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
@@ -47,6 +46,7 @@ public class LogInActivity extends AppCompatActivity {
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
     private String mVerificationID;
     private ProgressDialog pd;
+    private boolean isLogIn;
 
     // Setup Firestore database
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -138,11 +138,29 @@ public class LogInActivity extends AppCompatActivity {
                 String userName = binding.userName.getText().toString();
                 String phone = "+" + code + phoneNumber;
                 System.out.println(phone + "neeeeeeeeeee");
-                if (TextUtils.isEmpty(phone) | (binding.signUpBar.getVisibility() == View.VISIBLE) & (TextUtils.isEmpty(userName))) {
-                    Toast.makeText(LogInActivity.this, "Please enter all the input field(s)...", Toast.LENGTH_SHORT).show();
+
+                if (TextUtils.isEmpty(phoneNumber)) {
+                    Toast.makeText(LogInActivity.this, "Please your phone number", Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    startPhoneNumberVerification(phone);
+                    ArrayList<Integer> results = new ArrayList<>();
+                    DatabaseHandler.checkRegisteredUser(db, pd, phone, results);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        // False: Not in the dtb
+                         if (results.get(0) == 1) {
+                            isLogIn = false;
+                            Toast.makeText(LogInActivity.this, "User hasn't been registered. Please enter your name to create an account", Toast.LENGTH_SHORT).show();
+                         }
+                        else { isLogIn = true; }
+                    }, 5000);
+                    System.out.println(results);
+                    Toast.makeText(LogInActivity.this,"isLogIn = " + isLogIn, Toast.LENGTH_SHORT).show();
+                    if ((isLogIn == false) && (TextUtils.isEmpty(userName)) && (binding.userName.getVisibility() == View.VISIBLE)) {
+                        Toast.makeText(LogInActivity.this, "Please enter all the input field(s)...", Toast.LENGTH_SHORT).show();
+                    }
+                    else {
+                        startPhoneNumberVerification(phone);
+                    }
                 }
             }
         });
@@ -221,9 +239,6 @@ public class LogInActivity extends AppCompatActivity {
         pd.setMessage("Verifying OTP");
         pd.show();
 
-        ArrayList<String> currentUser = new ArrayList<>();
-        DatabaseHandler.getSingleUserOnDatabase(db,LogInActivity.this,mVerificationID,currentUser);
-
         PhoneAuthCredential credential = PhoneAuthProvider.getCredential(mVerificationID, otp);
         signInWithAuthCredential(credential);
     }
@@ -239,16 +254,15 @@ public class LogInActivity extends AppCompatActivity {
                          String uid = mAuth.getUid();
                          String name = binding.userName.getText().toString().trim();
 
-                         // Name not empty -> Signup push user to database
-                         if (!TextUtils.isEmpty(name)) {
+                         if (isLogIn == false) {
                              // TODO: Create user
                              // set title of progress bar
                              pd.setMessage("Signing up ...");
                              DatabaseHandler.createUserOnDatabase(db,LogInActivity.this,pd,uid,name,phone);
+                         } else {
+                             pd.setMessage("Logging In");
+                             Toast.makeText(LogInActivity.this, "Logged in as " + phone, Toast.LENGTH_SHORT).show();
                          }
-                         pd.setMessage("Logging In");
-                         Toast.makeText(LogInActivity.this, "Logged in as " + phone, Toast.LENGTH_SHORT).show();
-
                          // Start profile activity
                          Intent i = new Intent(LogInActivity.this, MapsActivity.class);
                          setResult(RESULT_OK, i);

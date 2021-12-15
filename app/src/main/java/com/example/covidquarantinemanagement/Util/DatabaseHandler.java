@@ -80,7 +80,7 @@ public class DatabaseHandler {
 
     public static void getZonesOnDatabase(FirebaseFirestore db, ProgressDialog pd, ArrayList<Zone> zonesContainer) {
         // Set title of progress bar
-        pd.setTitle("Loading quarantined zones ...");
+        pd.setTitle("Loading zones ...");
 
         // Show progress when user press add button
         pd.show();
@@ -176,5 +176,33 @@ public class DatabaseHandler {
                 }
             }
         });
+    }
+
+    public static void checkRegisteredUser(FirebaseFirestore db, ProgressDialog pd, String phone, ArrayList<Integer> isRegistered ) {
+        // set title of progress bar
+        pd.setTitle("Checking phone number...");
+
+        // show progress when user press search button
+        pd.show();
+
+        // search from database
+        db.collection("users")
+                .get()
+                .addOnCompleteListener(task -> {
+                    // dismiss progress dialog
+                    pd.dismiss();
+
+                    // loop through document and add into modelList
+                    for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
+                        if (Objects.requireNonNull(doc.getString("userPhone")).equals(phone)) {
+                            isRegistered.add(0);
+                            break;
+                        }
+                    }
+                    isRegistered.add(1);
+                })
+                .addOnFailureListener(e -> {
+                    pd.dismiss();
+                });
     }
 }
