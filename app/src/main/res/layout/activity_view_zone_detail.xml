@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".Activity.ViewZonesActivity">
+    android:padding="20dp"
+    tools:context=".Activity.ViewZoneDetailActivity">
 
+    <Button
+        android:id="@+id/export_user_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/red"
+        android:text="Export Volunteer List" />
     <TextView
-        android:id="@+id/hint_text_zone"
+        android:id="@+id/hint_text_user"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="No data added yet"
@@ -18,15 +24,15 @@
         android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/volunteer_recycleview"
+        android:id="@+id/volunteer_info_recycleview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/add_test_data_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="135dp">
+        android:backgroundTint="@color/blue"
+        android:text="Add Test Data" />
 
-    </androidx.recyclerview.widget.RecyclerView>
+
 </LinearLayout>
-
-
-
-

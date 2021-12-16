@@ -27,6 +27,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -180,6 +181,118 @@ public class DatabaseHandler {
         });
     }
 
+
+    public static void getVolunteerZones(FirebaseFirestore db, ProgressDialog pd, List<Zone> zonesContainer, String userId) {
+        // Set title of progress bar
+        pd.setTitle("Querying zones ...");
+
+        // Show progress when user press add button
+        pd.show();
+
+        // Add a new document with a generated ID
+        db.collection("zones")
+                .get() // Get data from Firestore
+                .addOnCompleteListener(task -> {
+                    // Dismiss progress action
+                    pd.dismiss();
+
+                    // Loop through document and add into zones container
+                    for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
+                        List<String> volunteerData = (List<String>) doc.get("zoneCurrentVolunteer");
+                        if (volunteerData != null && volunteerData.contains(userId)) {
+                            Zone model = new Zone(
+                                    doc.getString("zoneId"),
+                                    doc.getString("zoneLeader"),
+                                    doc.getString("zoneName"),
+                                    Integer.parseInt(doc.getString("zoneCapacity")),
+                                    doc.getString("zoneLevel1Address"),
+                                    doc.getString("zoneLevel2Address"),
+                                    doc.getString("zoneLevel3Address"),
+                                    doc.getString("zoneStreetAddress"),
+                                    Double.parseDouble(doc.getString("zoneLatitude")),
+                                    Double.parseDouble(doc.getString("zoneLongitude")),
+                                    (ArrayList<String>) doc.get("zoneCurrentVolunteer"),
+                                    (ArrayList<String>) doc.get("zoneTestData")
+                            );
+                            zonesContainer.add(model);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // dismiss progress action
+                    pd.dismiss();
+                });
+    }
+
+    public static void getLeaderZones(FirebaseFirestore db, ProgressDialog pd, List<Zone> zonesContainer, String userId) {
+        // Set title of progress bar
+        pd.setTitle("Querying zones ...");
+
+        // Show progress when user press add button
+        pd.show();
+
+        // Add a new document with a generated ID
+        db.collection("zones")
+                .get() // Get data from Firestore
+                .addOnCompleteListener(task -> {
+                    // Dismiss progress action
+                    pd.dismiss();
+
+                    // Loop through document and add into zones container
+                    for (DocumentSnapshot doc : Objects.requireNonNull(task.getResult())) {
+                        String leader = (String) doc.getString("zoneLeader");
+                        if (leader.equals(userId)) {
+                            Zone model = new Zone(
+                                    doc.getString("zoneId"),
+                                    doc.getString("zoneLeader"),
+                                    doc.getString("zoneName"),
+                                    Integer.parseInt(doc.getString("zoneCapacity")),
+                                    doc.getString("zoneLevel1Address"),
+                                    doc.getString("zoneLevel2Address"),
+                                    doc.getString("zoneLevel3Address"),
+                                    doc.getString("zoneStreetAddress"),
+                                    Double.parseDouble(doc.getString("zoneLatitude")),
+                                    Double.parseDouble(doc.getString("zoneLongitude")),
+                                    (ArrayList<String>) doc.get("zoneCurrentVolunteer"),
+                                    (ArrayList<String>) doc.get("zoneTestData")
+                            );
+                            zonesContainer.add(model);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // dismiss progress action
+                    pd.dismiss();
+                });
+    }
+
+    public static void getVolunteerList(FirebaseFirestore db, ProgressDialog pd, List<String> userContainer, String zoneId) {
+        // Set title of progress bar
+        pd.setTitle("Loading volunteer users ...");
+
+        // Show progress when user press add button
+        pd.show();
+
+        DocumentReference docRef = db.collection("zones").document(zoneId);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    // Document found in the offline cache
+                    DocumentSnapshot document = task.getResult();
+
+                    List<String> volunteerData = (List<String>) document.get("zoneCurrentVolunteer");
+
+                    userContainer.addAll(volunteerData);
+                    System.out.println(userContainer + "DHASSHDASDHADHADHDHASDAS");
+                } else {
+                    Log.d(TAG, "Cached get failed: ", task.getException());
+                }
+            }
+        });
+        pd.dismiss();
+    }
+
     public static void checkRegisteredUser(FirebaseFirestore db, ProgressDialog pd,  String phone, ArrayList<Integer> isRegistered ) {
         // set title of progress bar
         pd.setTitle("Checking phone number...");
@@ -221,6 +334,22 @@ public class DatabaseHandler {
             zoneDocRef.update("zoneCurrentVolunteer", FieldValue.arrayUnion(newVolunteer));
         }
         Toast.makeText(context, "Register for volunteer successfully!", Toast.LENGTH_SHORT).show();
+        pd.dismiss();
+    }
+
+    public static void addTestData (FirebaseFirestore db, ProgressDialog pd, Context context, String zoneId, ArrayList<String> newData) {
+        // set title of progress bar
+        pd.setTitle("Adding new volunteer...");
+
+        // show progress when user press search button
+        pd.show();
+
+        DocumentReference zoneDocRef = db.collection("zones").document(zoneId);
+        for (String newVolunteer :
+                newData) {
+            zoneDocRef.update("zoneTestData", FieldValue.arrayUnion(newVolunteer));
+        }
+        Toast.makeText(context, "Add test data successfully!", Toast.LENGTH_SHORT).show();
         pd.dismiss();
     }
 }

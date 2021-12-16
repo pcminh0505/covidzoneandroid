@@ -298,9 +298,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         volunteerList.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                Intent i = new Intent(MapsActivity.this , ViewZonesActivity.class);
-                i.putExtra("type","volunteer");
-                startActivity(i);
+                if (mUser == null) {
+                    Toast.makeText(MapsActivity.this, "You need to login to view your volunteer zone", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Intent i = new Intent(MapsActivity.this , ViewZonesActivity.class);
+                    i.putExtra("type","volunteer");
+                    startActivityForResult(i, 50);
+                    mDrawerLayout.closeDrawer(GravityCompat.START);
+                }
                 return true;
             }
         });
@@ -308,9 +314,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         leaderList.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                Intent i = new Intent(MapsActivity.this , ViewZonesActivity.class);
-                i.putExtra("type","leader");
+                if (mUser == null) {
+                    Toast.makeText(MapsActivity.this, "You need to login to view your leading zone", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Intent i = new Intent(MapsActivity.this , ViewZonesActivity.class);
+                    i.putExtra("type","leader");
+                    startActivity(i);
+                    mDrawerLayout.closeDrawer(GravityCompat.START);
+                }
+                return true;
+            }
+        });
+
+        adminPanel.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                Intent i = new Intent(MapsActivity.this , SearchActivity.class);
+                i.putExtra("zonesList",zones);
                 startActivity(i);
+                mDrawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             }
         });
@@ -403,7 +426,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             // Update the volunteer list
                             String friendNumber = friendRegistration.getText().toString();
                             ArrayList<String> appendRequest = new ArrayList<>();
-                            appendRequest.add(mUser.getPhoneNumber());
+                            appendRequest.add(mUser.getUid());
                             // Submitted friend's number
                             if (!TextUtils.isEmpty(friendNumber)) {
                                 // Suppose they enter the correct number
@@ -550,7 +573,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
 //         Move camera to searched zone
-        else if (requestCode == 200) {
+        else if (requestCode == 200 || requestCode == 50) {
             if (resultCode == RESULT_OK) {
                 double selectedLatitude = data.getDoubleExtra("latitude",0.00);
                 double selectedLongitude = data.getDoubleExtra("longitude",0.00);

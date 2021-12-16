@@ -18,6 +18,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CovidQuarantineManagement">
         <activity
+            android:name=".Activity.ViewZoneDetailActivity"
+            android:label="Zone Details"
+            android:exported="false" />
+        <activity
             android:name=".Activity.ViewZonesActivity"
             android:exported="false" />
         <activity

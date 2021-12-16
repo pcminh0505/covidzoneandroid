@@ -19,7 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="@font/roboto"
-        android:text="RMIT University"
+        android:text="Fetching Zone Name..."
         android:textSize="20sp"
         android:textStyle="bold" />
 
@@ -28,7 +28,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="@font/roboto"
-        android:text="Address: 702 Nguyen Van Linh, Phuong Tan Phong, Quan 7, Thanh pho Ho Chi Minh"
+        android:text="Fetching Address..."
         android:textSize="15sp" />
 
     <TextView
@@ -36,7 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="@font/roboto"
-        android:text=""
+        android:text="Fectching Leader Name..."
         android:textSize="15sp" />
 
     <TextView
@@ -44,7 +44,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="@font/roboto"
-        android:text=""
+        android:text="Fetching Leader Contact..."
         android:textSize="15sp" />
 
     <TextView
@@ -52,7 +52,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fontFamily="@font/roboto"
-        android:text="Capacity: 200"
+        android:text="Fetching Capacity..."
         android:textSize="15sp" />
 
     <TextView
