@@ -23,5 +23,7 @@ public class ViewZonesActivity extends AppCompatActivity {
         else {
             getSupportActionBar().setTitle("Volunteer Zones");
         }
+
+
     }
 }
