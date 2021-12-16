@@ -35,8 +35,8 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         TextView tvId = (TextView) view.findViewById(R.id.zone_id);
 
         TextView tvLoginReminder = (TextView) view.findViewById(R.id.zone_login_reminder);
-        if (mUser != null) {
-            tvLoginReminder.setVisibility(View.GONE);
+        if (mUser == null) {
+            tvLoginReminder.setVisibility(View.VISIBLE);
         }
 
         String snippet = marker.getSnippet();
@@ -49,10 +49,10 @@ public class InfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         // data[4]: Zone ID
 
         tvTitle.setText(marker.getTitle());
-        tvAddress.setText(data[0]);
+        tvAddress.setText("Address: " + data[0]);
         tvCapacity.setText("Capacity: " + data[1]);
-        tvLeaderName.setText("Leader: "+ data[2]);
-        tvContact.setText("Contact: "+ data[3]);
+        tvLeaderName.setText("Leader: " + data[2]);
+        tvContact.setText("Contact: " + data[3]);
 
 //        new Handler(Looper.getMainLooper()).postDelayed(() -> {
 //            if (zoneLeader.get(0) != null || zoneLeader.get(1) != null) {

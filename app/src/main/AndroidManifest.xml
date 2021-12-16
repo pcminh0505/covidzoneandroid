@@ -18,8 +18,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.CovidQuarantineManagement">
         <activity
-            android:name=".Activity.SearchActivity"
+            android:name=".Activity.ViewZonesActivity"
             android:exported="false" />
+        <activity
+            android:name=".Activity.SearchActivity"
+            android:exported="false"
+            android:label="Search Zones" />
         <activity
             android:name=".Activity.LogInActivity"
             android:exported="false"

@@ -69,6 +69,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -145,24 +146,35 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         DatabaseHandler.getZonesOnDatabase(db,pd,zones);
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            for (Zone z : zones) {
-                ArrayList<String> zoneLeader = new ArrayList<>();
-                DatabaseHandler.getSingleUserOnDatabase(db, MapsActivity.this, z.getZoneLeader(), zoneLeader);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    LatLng zLatLng = new LatLng(z.getZoneLatitude(),z.getZoneLongitude());
-                    MarkerOptions markerOptions = new MarkerOptions()
-                            .position(zLatLng)
-                            .icon(bitmapDescriptorFromVector(this,R.drawable.zone_marker))
-                            .title(z.getZoneName())
-                            .snippet(z.getZoneStreetAddress() + " " + z.getZoneLevel3Address() + " "
-                                    + z.getZoneLevel2Address() + " " + z.getZoneLevel1Address() + "|"
-                                    + z.getZoneCapacity()
-                                    + "|" + zoneLeader.get(0) + "|" + zoneLeader.get(1)
-                                    + "|" + z.getZoneId());
-                    map.addMarker(markerOptions);
-                }, 5000);
+            if (zones != null) {
+                for (Zone z : zones) {
+                    ArrayList<String> zoneLeader = new ArrayList<>();
+                    DatabaseHandler.getSingleUserOnDatabase(db, MapsActivity.this, z.getZoneLeader(), zoneLeader);
+
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (zoneLeader != null) {
+                            LatLng zLatLng = new LatLng(z.getZoneLatitude(),z.getZoneLongitude());
+                            MarkerOptions markerOptions = new MarkerOptions()
+                                    .position(zLatLng)
+                                    .icon(bitmapDescriptorFromVector(this,R.drawable.zone_marker))
+                                    .title(z.getZoneName())
+                                    .snippet(z.getZoneStreetAddress() + " " + z.getZoneLevel3Address() + " "
+                                            + z.getZoneLevel2Address() + " " + z.getZoneLevel1Address() + "|"
+                                            + z.getZoneCapacity()
+                                            + "|" + zoneLeader.get(0) + "|" + zoneLeader.get(1)
+                                            + "|" + z.getZoneId());
+                            map.addMarker(markerOptions);
+                        }
+                        else {
+                            Toast.makeText(MapsActivity.this, "Connection time out - Can't get user", Toast.LENGTH_SHORT).show();
+                        }
+                    }, 2000);
+                }
             }
-        }, 5000);
+            else {
+                Toast.makeText(MapsActivity.this, "Connection time out - Can't get zone", Toast.LENGTH_SHORT).show();
+            }
+        }, 2000);
         System.out.println(zones);
 
 
@@ -199,16 +211,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
         // Search Button + Listener
-//        ImageButton searchButton = (ImageButton) findViewById(R.id.search_site_button);
-//        searchButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
-////                ArrayList<String> existedList = Helper.createSymbolList(mCrypto);
-////                i.putExtra("existedList",existedList);
-//                startActivityForResult(i,200);
-//            }
-//        });
+        ImageButton searchButton = (ImageButton) findViewById(R.id.search_site_button);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MapsActivity.this, SearchActivity.class);
+                System.out.println(zones);
+                i.putExtra("zonesList",zones);
+                startActivityForResult(i,200);
+            }
+        });
     }
 
     private void checkUserStatus() {
@@ -223,7 +235,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void updateLoginUI() {
         // User logged in
         String userId = mUser.getUid();
-
 
         // Edit navigation view
         NavigationView navigationView = (NavigationView) findViewById(R.id.navigation_view);
@@ -240,23 +251,38 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         ArrayList<String> tempUser = new ArrayList<>();
         DatabaseHandler.getSingleUserOnDatabase(db,MapsActivity.this,userId,tempUser);
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            if (tempUser.get(0) != null || tempUser.get(1) != null) {
+            if (tempUser != null) {
                 currentUserName.setText(tempUser.get(0));
                 // Hide middle phone number
                 currentUserPhone.setText(tempUser.get(1).replaceAll("\\d(?=(?:\\D*\\d){4})", "*"));
                 // Add to current user object
                 currentUser.setId(tempUser.get(2));
-                currentUser.setId(tempUser.get(0));
-                currentUser.setId(tempUser.get(1));
+                currentUser.setName(tempUser.get(0));
+                currentUser.setPhone(tempUser.get(1));
             }
-        }, 10000);
+            else {
+                Toast.makeText(MapsActivity.this, "Connection time out - Can't get data", Toast.LENGTH_SHORT).show();
+            }
+        }, 2000);
 
         currentUserInfo.setVisibility(View.VISIBLE);
 
         // Edit menu
         Menu menuView = navigationView.getMenu();
         MenuItem logoutItem = menuView.findItem(R.id.nav_logout);
+        MenuItem adminPanel = menuView.findItem(R.id.nav_admin);
+        MenuItem volunteerList = menuView.findItem(R.id.nav_volunteer);
+        MenuItem leaderList = menuView.findItem(R.id.nav_leader);
+
+        // Set logout button visible
         logoutItem.setVisible(true);
+
+
+        // Set admin to be visible to admin
+        if (userId.equals("Qx9BmJdK1nhTeX2ebjGPPGQHDEG2")) {
+            adminPanel.setVisible(true);
+        }
+
 
         // Setup logout function
         logoutItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
@@ -265,6 +291,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 mAuth.getInstance().signOut();
                 finish();
                 startActivity(getIntent());
+                return true;
+            }
+        });
+
+        volunteerList.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Intent i = new Intent(MapsActivity.this , ViewZonesActivity.class);
+                i.putExtra("type","volunteer");
+                startActivity(i);
+                return true;
+            }
+        });
+
+        leaderList.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                Intent i = new Intent(MapsActivity.this , ViewZonesActivity.class);
+                i.putExtra("type","leader");
+                startActivity(i);
                 return true;
             }
         });
@@ -319,7 +365,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 // data[4] = zoneID
 
                 System.out.println(data[3]);
-                System.out.println(mUser.getPhoneNumber());
+//                System.out.println(mUser.getPhoneNumber());
 
                 // Not login --> Disable info window touch
                 if (mUser == null) {
@@ -380,24 +426,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
-//        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-//            @Override
-//            public void onMapClick(LatLng latLng) {
-//                // Move to RegisterZone Activity
-//                Intent i = new Intent(MapsActivity.this, RegisterZoneActivity.class);
-//                i.putExtra("latitude",latLng.latitude);
-//                i.putExtra("longitude",latLng.longitude);
-//                startActivity(i);
-//            }
-//        });
-//
-//        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-//            @Override
-//            public boolean onMarkerClick(Marker marker) {
-//                Toast.makeText(MapsActivity.this, marker.toString(), Toast.LENGTH_SHORT).show();
-//                return false;
-//            }
-//        });
     }
 
     /**
@@ -521,12 +549,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(MapsActivity.this, "New Site has been registered", Toast.LENGTH_LONG).show();
                 }
             }
-        // Move camera to searched zone
-//        else if (requestCode == 200) {
-//            if (resultCode == RESULT_OK) {
-//
-//            }
-//        }
+//         Move camera to searched zone
+        else if (requestCode == 200) {
+            if (resultCode == RESULT_OK) {
+                double selectedLatitude = data.getDoubleExtra("latitude",0.00);
+                double selectedLongitude = data.getDoubleExtra("longitude",0.00);
+                LatLng selectedZone = new LatLng(selectedLatitude, selectedLongitude);
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(selectedZone, 16));
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedZone, 15));
+            }
+        }
         // User Login successfully
         else if (requestCode == 300) {
             if (resultCode == RESULT_OK) {
